@@ -1,9 +1,7 @@
 import flet as ft
-import requests
 from flet import AppBar, Text, View
 from flet.core.colors import Colors
 from flet.core.icons import Icons
-from flet.core.types import FontWeight, CrossAxisAlignment
 from api.routes import *
 
 
@@ -15,127 +13,6 @@ def main(page: ft.Page):
     page.window.height = 667
 
     # Funções
-
-    def click_salvar(e):
-        token = page.client_storage.get("auth_token")
-        if token is None:
-            page.go("/login")
-
-        nome = input_nome.value
-        email = input_email.value
-        senha = input_senha.value
-        papel = input_papel.value
-
-        #Verifica se foi preenchido
-        if nome and email and senha and papel:
-
-            # Feedback de carregamento
-            btn_salvar.disabled = True
-            btn_salvar.text = "Salvando..."
-            loading_indicator.visible = True
-
-            btn_salvar.opacity = 0.5
-            input_nome.opacity = 0.5
-            input_email.opacity = 0.5
-            input_senha.opacity = 0.5
-            input_papel.opacity = 0.5
-
-            page.update()
-
-            #chama a API
-            resposta = post_usuarios(nome, email, senha, papel, token)
-            if resposta == 201:
-                snack_sucesso("Usuário cadastrado com sucesso.")
-
-                input_nome.value = ""
-                input_email.value = ""
-                input_senha.value = ""
-                input_papel.value = ""
-            else:
-                print(resposta)
-                snack_error("Erro ao cadastrar usuário")
-
-            # Restaurar Componentes
-            btn_salvar.disabled = False
-            btn_salvar.text = "Salvar"
-            loading_indicator.visible = False
-            btn_salvar.opacity = 1
-            input_nome.opacity = 1
-            input_email.opacity = 1
-            input_senha.opacity = 1
-            input_papel.opacity = 1
-
-            page.update()
-
-    def click_login(e):
-        # Limpa erros anteriores
-        input_email.error_text = None
-        input_senha.error_text = None
-
-        # Validação de campos
-        is_valid = True
-        if not input_email.value:
-            input_email.error_text = "O campo e-mail é obrigatório."
-            is_valid = False
-
-        if not input_senha.value:
-            input_senha.error_text = "O campo senha é obrigatório."
-            is_valid = False
-
-        if not is_valid:
-            page.update()
-            return
-
-        # Feedback de carregamento
-        btn_login.disabled = True
-        btn_login.text = "Entrando..."
-        loading_indicator.visible = True
-        spacing.visible = True
-
-        btn_login.opacity = 0.5
-        input_email.opacity = 0.5
-        input_senha.opacity = 0.5
-
-        page.update()
-
-        # Chamar a rota da API
-        dados = post_login(input_email.value, input_senha.value)
-
-        # Lógica de "autenticação"
-        if "access_token" in dados:
-
-            page.client_storage.set("auth_token", dados["access_token"])
-            page.client_storage.set("papel", dados["papel"])
-
-            # Feedback de sucesso
-            snack_sucesso("Login realizado com sucesso!")
-
-            input_email.value = ""
-            input_senha.value = ""
-
-            page.go("/usuarios")
-
-        else:
-            # Feedback de erro
-            snack_error("Credenciais inválidas")
-
-        # Restaura o estado dos componentes
-        btn_login.disabled = False
-        btn_login.text = "Login"
-        loading_indicator.visible = False
-        spacing.visible = False
-        btn_login.opacity = 1
-        input_email.opacity = 1
-        input_senha.opacity = 1
-
-        page.update()
-
-    def click_logout(e):
-        page.client_storage.remove("auth_token")
-        page.snack_bar = ft.SnackBar(content=ft.Text("Você foi desconectado."))
-        page.snack_bar.open = True
-        page.go("/login")
-        page.update()
 
     def snack_sucesso(texto: str):
         page.snack_bar = ft.SnackBar(
@@ -154,13 +31,14 @@ def main(page: ft.Page):
         page.overlay.append(page.snack_bar)
 
     def atualizar_lista():
-        token = page.client_storage.get("auth_token")
-        if token is None:
-            page.go("/login")
+        #Pegar o token
+
 
         lv_usuarios.controls.clear()
-        usuarios = get_usuarios(token)
-        print(usuarios)
+
+        #Chamar a API
+
+
         for usuario in usuarios:
             lv_usuarios.controls.append(
                 ft.ListTile(
@@ -172,10 +50,6 @@ def main(page: ft.Page):
         page.update()
 
     def gerencia_rotas(e):
-
-        # input_email.value = "lucas@"
-        # input_senha.value = "123"
-
         page.views.clear()
         page.views.append(
             View(
@@ -202,8 +76,7 @@ def main(page: ft.Page):
         )
 
         if page.route == "/usuarios":
-            # Somente o admin pode adicionar novos usuarios
-            fab_add_usuario.visible = page.client_storage.get("papel") == "admin"
+
             atualizar_lista()
 
             page.views.append(
@@ -239,7 +112,6 @@ def main(page: ft.Page):
                 )
             )
 
-        # verifica_usuario_conectado()
         page.update()
 
     # Componentes
@@ -251,6 +123,7 @@ def main(page: ft.Page):
 
     lv_usuarios = ft.ListView(expand=True)
 
+    # Campos
     input_email = ft.TextField(
         label="E-mail",
         width=300,
@@ -259,7 +132,6 @@ def main(page: ft.Page):
         autofocus=True,
     )
 
-    # Campo de Senha
     input_senha = ft.TextField(
         label="Senha",
         width=300,
@@ -285,18 +157,16 @@ def main(page: ft.Page):
 
     spacing = ft.Container(visible=False, height=10)
 
-    # Botão de Login
+    # Botões
     btn_login = ft.ElevatedButton(
         text="Login",
         icon=Icons.LOGIN,
         width=300,
         height=45,
-        on_click=click_login,
     )
 
     btn_logout = ft.TextButton(
         icon=Icons.LOGOUT,
-        on_click=click_logout,
         scale=1.5,
         icon_color=Colors.RED_700
     )
@@ -304,7 +174,6 @@ def main(page: ft.Page):
     btn_salvar = ft.FilledButton(
         text="Salvar",
         style=ft.ButtonStyle(text_style=ft.TextStyle(size=16)),
-        on_click=click_salvar,
         width=page.window.width,
         height=45,
     )
