@@ -13,6 +13,57 @@ def main(page: ft.Page):
     page.window.height = 667
 
     # Funções
+    def click_login(e):
+        loading_indicator.visible = True
+        page.update()
+
+        dados = post_login(input_email.value, input_senha.value)
+
+        if "access_token" in dados:
+            snack_sucesso("Login realizado com sucesso!")
+
+            page.client_storage.set("access_token", dados["access_token"])
+            page.client_storage.set("papel", dados["papel"])
+
+            input_email.value = ""
+            input_senha.value = ""
+
+            loading_indicator.visible = False
+            page.go("/usuarios")
+
+        else:
+            snack_error("Email ou senha incorretos.")
+
+    def click_logout(e):
+        page.client_storage.remove("access_token")
+        snack_sucesso("Logout realizado com sucesso!")
+        page.go("/login")
+
+    def click_salvar_usuario(e):
+        nome = input_nome.value
+        email = input_email.value
+        senha = input_senha.value
+        papel = input_papel.value
+
+        if nome and email and senha and papel:
+            loading_indicator.visible = True
+            page.update()
+
+            token = page.client_storage.get("access_token")
+
+            response = post_usuario(nome, email, senha, papel, token)
+
+            if response == 201:
+                snack_sucesso("Usuario cadastrado com sucesso!")
+                input_nome.value = ""
+                input_email.value = ""
+                input_senha.value = ""
+                input_papel.value = ""
+                page.update()
+            else:
+                snack_error("Erro ao cadastrar usuario")
+
+
 
     def snack_sucesso(texto: str):
         page.snack_bar = ft.SnackBar(
@@ -32,12 +83,12 @@ def main(page: ft.Page):
 
     def atualizar_lista():
         #Pegar o token
-
-
+        token = page.client_storage.get("access_token")
         lv_usuarios.controls.clear()
 
         #Chamar a API
-
+        dados = get_usuarios(token)
+        usuarios = dados["usuarios"]
 
         for usuario in usuarios:
             lv_usuarios.controls.append(
@@ -77,11 +128,13 @@ def main(page: ft.Page):
 
         if page.route == "/usuarios":
 
+            fab_add_usuario.visible = page.client_storage.get("papel") == "admin"
+
             atualizar_lista()
 
             page.views.append(
                 View(
-                    "/",
+                    "/usuarios",
                     [
                         AppBar(title=Text("Usuarios"), center_title=True, bgcolor=Colors.PRIMARY_CONTAINER,
                                leading=ft.Icon(), actions=[btn_logout]),
@@ -163,12 +216,14 @@ def main(page: ft.Page):
         icon=Icons.LOGIN,
         width=300,
         height=45,
+        on_click=click_login
     )
 
     btn_logout = ft.TextButton(
         icon=Icons.LOGOUT,
         scale=1.5,
-        icon_color=Colors.RED_700
+        icon_color=Colors.RED_700,
+        on_click=click_logout
     )
 
     btn_salvar = ft.FilledButton(
@@ -176,6 +231,7 @@ def main(page: ft.Page):
         style=ft.ButtonStyle(text_style=ft.TextStyle(size=16)),
         width=page.window.width,
         height=45,
+        on_click=click_salvar_usuario
     )
 
     btn_cancelar = ft.OutlinedButton(
