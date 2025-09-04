@@ -63,6 +63,9 @@ def main(page: ft.Page):
             else:
                 snack_error("Erro ao cadastrar usuario")
 
+            loading_indicator.visible = False
+            page.update()
+
 
 
     def snack_sucesso(texto: str):
@@ -112,7 +115,7 @@ def main(page: ft.Page):
                             ft.Container(height=10),  # Espaçamento
                             input_email,
                             input_senha,
-                            ft.Container(height=10),  # Espaçamento
+                            ft.Container(height=page.window.height),  # Espaçamento
                             loading_indicator,
                             spacing,
                             btn_login,
@@ -122,7 +125,7 @@ def main(page: ft.Page):
                         height=page.window.height,
                         alignment=ft.MainAxisAlignment.CENTER,
                     )
-                ]
+                ],
             )
         )
 

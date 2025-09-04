@@ -1,6 +1,6 @@
 import requests
 
-base_url = "http://10.135.235.11:5002"
+base_url = "http://10.135.233.6:5002"
 
 def post_login(email, senha):
     try:
@@ -38,8 +38,6 @@ def post_usuario(nome, email, senha, papel, token):
             "papel": papel,
         }
         response = requests.post(url, json=dados, headers={"Authorization": f"Bearer {token}"})
-        print(response.json())
-        print(response.status_code)
         return response.status_code
     except Exception as e:
         print(e)
