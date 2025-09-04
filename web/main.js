@@ -90,30 +90,39 @@ async function login() {
     }
 }
 
-document.getElementById("btn").addEventListener("click", async () => {
-    const token = document.getElementById("token").value.trim(); // Pegar o token
+async function createPostToken() {
+    document.getElementById("btn").addEventListener("click", async (e) => {
+        const token = document.getElementById("token").value.trim(); // Pegar o token
 
-    if (!token) {
-        output.textContent = "Realize o login novamente!";
-        return;
-    }
-
-    try {
-        const response = await fetch("https://jsonplaceholder.typicode.com/posts/1", {
-            headers: {
-                "Authorization": `Bearer ${token}`, // 🔑 Aqui vai o token
-                "Accept": "application/json"
-            }
-        });
-
-        if (!response.ok) {
-            output.textContent = "Erro: " + response.status;
+        if (!token) {
+            output.textContent = "Realize o login novamente!";
             return;
         }
 
-        const data = await response.json();
-        // usar a resposta da api ...
-    } catch (err) {
-        output.textContent = "Erro: " + err.message;
-    }
-});
+        const title = document.getElementById("title").value;
+        const body = document.getElementById("body").value;
+        const userId = document.getElementById("userId").value;
+
+        try {
+            const response = await fetch("https://jsonplaceholder.typicode.com/posts/1", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`, // 🔑 Aqui vai o token
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({title, body, userId})
+            });
+
+            if (!response.ok) {
+                output.textContent = "Erro: " + response.status;
+                return;
+            }
+
+            const data = await response.json();
+            // usar a resposta da api ...
+        } catch (err) {
+            output.textContent = "Erro: " + err.message;
+        }
+    });
+}
