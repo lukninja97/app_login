@@ -8,9 +8,7 @@ from api.routes import *
 def main(page: ft.Page):
     # Configurações
     page.title = "Exemplo de Login"
-    page.theme_mode = ft.ThemeMode.LIGHT  # ou ft.ThemeMode.DARK
-    page.window.width = 375
-    page.window.height = 667
+    page.theme_mode = ft.ThemeMode.LIGHT
 
     # Funções
     def click_login(e):
@@ -115,7 +113,7 @@ def main(page: ft.Page):
                             ft.Container(height=10),  # Espaçamento
                             input_email,
                             input_senha,
-                            ft.Container(height=page.window.height),  # Espaçamento
+                            ft.Container(height=10),  # Espaçamento
                             loading_indicator,
                             spacing,
                             btn_login,
@@ -253,4 +251,4 @@ def main(page: ft.Page):
 
 # Comando que executa o aplicativo
 # Deve estar sempre colado na linha
-ft.app(main)
+ft.app(main, host='0.0.0.0')
